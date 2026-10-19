@@ -141,7 +141,7 @@ if ($bad) { "❌ 包内出现不该发布的东西：$($bad -join ', ')" } else 
   ⚠️ **同一事实还有第二个落点**：GitHub 仓库的 description 当时也写着 "No credentials, no network of its own"，
   2026-10-16 一并改掉 —— 一处能力陈述有多个落点时，**要么同一次改完，要么就会漂**。【硬经验】
 - **`data\import\health-facts\AGENTS.md` 是受保护规则文件**（在 `D:\dsh\tools\rules-files.mjs` 清单里），
-  **本文件没有登记进那份清单**。要不要补进去由用户定（参照该文件 48–49 行对 `session-length.js` 的同类留白）。【未验证】
+  **本文件没有登记进那份清单**。要不要补进去由用户定（参照该文件 48–49 行对 `sessions-length.js` 的同类留白）。【未验证】
 
 ## 8. 提交与协作
 
