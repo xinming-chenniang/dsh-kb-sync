@@ -1,7 +1,7 @@
 # 每日自动同步：网页端对话 → 本地知识库
 
-> **本文档已随 2026-10-12 的迁移更新（阶段 1）。** 代码在本目录（`D:\dsh\dsh-kb-sync\tools\pipeline\`），
-> 运行时数据在 `D:\dsh\dsh-kb-sync\data\import\`，token 在仓库外。下面第一之三 / 一之四两节
+> **本文档已随 2026-10-12 的迁移更新（阶段 1）。** 代码在本目录（`D:\工作区\dsh-kb-sync\tools\pipeline\`），
+> 运行时数据在 `D:\工作区\dsh-kb-sync\data\import\`，token 在仓库外。下面第一之三 / 一之四两节
 > 里仍留有 `D:\dsh\deepseek-import` 的**历史报错原文与生效日志**（它们记的是当时那一刻的事实，
 > 刻意不改）；凡是指路的命令与路径都已换成新地址。旧目录整体搬到了
 > `D:\dsh\_archive\deepseek-import-retired\`。
@@ -61,7 +61,7 @@ Windows 任务计划程序  DSH-KB-DailySync  每天 21:00
 | 是否自动生效 | 是（随后重建档案） | **否——必须由你在财务看板确认后才入账** |
 
 > ⚠️ **财务为什么只写候选、不自动入账**：**台账的规矩只有一个家** ——
-> `D:\dsh\控制台中心\finance\README.md`「候选不会自动进台账」。让模型直接改 `profile.json` / `debts.json`
+> `D:\工作区\控制台中心\finance\README.md`「候选不会自动进台账」。让模型直接改 `profile.json` / `debts.json`
 > 会破坏那套规矩，而钱的数字一旦悄悄错掉很难发现。所以段 2 只把候选追加到 `candidates.jsonl`。
 >
 > 候选体积很小、只追加不覆盖；重复抽取会按 `dedupeKey`（topic+label+值+asOf+出处）自动跳过，反复运行不会堆积。
@@ -129,7 +129,7 @@ GUI 侧栏的「未分组」下多出一条会话，标题取提示词首句（�
 已实测整条链路：`cmd` 里 `set DSH_HOME` → `pwsh` → `dsh headless` 都看得到该变量，
 运行 `exit=0`，新会话落在 `.dsh-home\sessions\`，交互式 home 的会话数不再增长。
 
-> ⚠️ 不要去掉这一行。任何**绕过它**的 headless 调用（例如手工在 `D:\dsh\dsh-kb-sync\data\import`
+> ⚠️ 不要去掉这一行。任何**绕过它**的 headless 调用（例如手工在 `D:\工作区\dsh-kb-sync\data\import`
 > 里直接跑 `dsh headless`）仍会落进「未分组」。
 >
 > ⚠️ `.credentials.yaml` 是**复制**不是链接：主 home 里换 key/token 后，要同步更新
@@ -182,7 +182,7 @@ prep-inbox.mjs（原样复用，输入还是 sync\inbox\）
 
 **路径注意**：这条链由**插件**发起，`settings.pipelineDir` 默认指向
 `node_modules\dsh-kb-sync\tools\pipeline\`（即安装快照里的那份），所以改完管线脚本要么重装 bundle、
-要么把改动同步进快照；数据仍只写在 `D:\dsh\dsh-kb-sync\data\import\`（由 `pipeline.json` 决定）。
+要么把改动同步进快照；数据仍只写在 `D:\工作区\dsh-kb-sync\data\import\`（由 `pipeline.json` 决定）。
 
 ### 验收实测（2026-10-12）
 
@@ -238,7 +238,7 @@ Node 退出期噪声、不算失败；② 只有在输出里**出现 `AUTH_UNAUT
 **通知**：整链结论写成与退役 `notify.ps1` **逐句相同**的文案，落在状态页（`chain.report.notify`）；
 桌面气泡不再是必需环节，也就没有"BOM 丢了导致气泡静默消失"这个失效模式了。
 
-**触发器为什么这么绕**：任务跑的是**可见的** `D:\dsh\dsh-kb-sync\tools\pipeline\trigger.cmd`，
+**触发器为什么这么绕**：任务跑的是**可见的** `D:\工作区\dsh-kb-sync\tools\pipeline\trigger.cmd`，
 而插件可能从**安装快照**（`<profile>\node_modules\dsh-kb-sync\tools\pipeline`）加载 —— 两个目录不是同一个，
 插件写的 `trigger.json` 在快照里（2026-10-12 实测踩到）。所以插件在两处各写一份 `trigger-source.json`
 （"真目录在哪"），`trigger.cmd` 把两份当**候选**：逐个检查候选指向的 `pipelineDir` 里**真有没有
@@ -324,11 +324,11 @@ Node 退出期噪声、不算失败；② 只有在输出里**出现 `AUTH_UNAUT
 > `powershell -File sync\notify.ps1 -Case sync-ok -LogPath TEST` 确认无报错。
 
 > ℹ️ **知识库完整性检查（2026-10-10 新增）。** `tools\pipeline\sync-daily.cmd` 末尾会跑
-> `node D:\dsh\dsh-kb-sync\data\kb\tools\kb.mjs doctor`：核对 `conversations.jsonl` /
+> `node D:\工作区\dsh-kb-sync\data\kb\tools\kb.mjs doctor`：核对 `conversations.jsonl` /
 > `catalog.json` / `conversations\*.md` 三份清单数量是否一致、有没有悬空链接、
 > 以及最新对话是否已超过 3 天没更新（后者能发现同步静默停摆）。
 > 它**只读，不写任何东西**，失败也**不会中断流水线**，只弹一条 `kb-check-failed` 警告。
-> 手动查看：`node D:\dsh\dsh-kb-sync\data\kb\tools\kb.mjs doctor`（有问题时退出码 1）。
+> 手动查看：`node D:\工作区\dsh-kb-sync\data\kb\tools\kb.mjs doctor`（有问题时退出码 1）。
 
 > ⚠️ **不要把同一份日志重定向两次。** `sync-extract.cmd` 调用 pwsh 只在**外层**重定向；若在 `-Command` 里再写 `*>> '%LOG%'`，两个句柄争抢同一文件，pwsh 直接报 "being used by another process" 并失败（已实测踩到）。
 
@@ -380,15 +380,15 @@ Register-ScheduledTask -Xml (Get-Content 'D:\dsh\tmp\DSH-KB-DailySync-backup-202
   -TaskName "DSH-KB-DailySync" -Force
 
 # ② 没有 XML 时从零建一条（动作/时间/账号按需要改；下面这段 2026-10-12 实测过，字段与备份 XML 逐项一致）
-$action    = New-ScheduledTaskAction -Execute 'D:\dsh\dsh-kb-sync\tools\pipeline\trigger.cmd' `
-                                      -WorkingDirectory 'D:\dsh\dsh-kb-sync\tools\pipeline'
+$action    = New-ScheduledTaskAction -Execute 'D:\工作区\dsh-kb-sync\tools\pipeline\trigger.cmd' `
+                                      -WorkingDirectory 'D:\工作区\dsh-kb-sync\tools\pipeline'
 $trigger   = New-ScheduledTaskTrigger -Daily -At 21:00
 $set       = New-ScheduledTaskSettingsSet -StartWhenAvailable -ExecutionTimeLimit (New-TimeSpan -Minutes 30)
 $principal = New-ScheduledTaskPrincipal -UserId "$env:COMPUTERNAME\$env:USERNAME" -LogonType Interactive
 Register-ScheduledTask -TaskName "DSH-KB-DailySync" -Action $action -Trigger $trigger -Settings $set -Principal $principal
 
 # ③ 手动跑（现在最常用）：双击 trigger.cmd，或
-cmd /c "D:\dsh\dsh-kb-sync\tools\pipeline\trigger.cmd"
+cmd /c "D:\工作区\dsh-kb-sync\tools\pipeline\trigger.cmd"
 #（它会 POST 到插件；插件没在跑就会等约 3 分钟后 exit 3，并在 LAST-SYNC.txt 留一行）
 # 任务重建后，下面这两条才有效：
 Start-ScheduledTask  -TaskName "DSH-KB-DailySync"      # 立即跑一次
@@ -459,16 +459,16 @@ headless 的自我报告确认它遵守了边界：「全程未写入 `knowledge
 
 ```powershell
 # 1) 备份并清空本轮变化，让段 2 走一遍完整管道但不产生任何内容变更
-Copy-Item D:\dsh\dsh-kb-sync\data\import\update-new-items.json $env:TEMP\uni.bak.json
+Copy-Item D:\工作区\dsh-kb-sync\data\import\update-new-items.json $env:TEMP\uni.bak.json
 '{ "generatedAt": "2026-01-01T00:00:00.000Z", "added": [], "changed": [], "items": [] }' |
-  Set-Content D:\dsh\dsh-kb-sync\data\import\update-new-items.json -Encoding UTF8
+  Set-Content D:\工作区\dsh-kb-sync\data\import\update-new-items.json -Encoding UTF8
 
 # 2) 跑段 2
-cmd /c "D:\dsh\dsh-kb-sync\tools\pipeline\sync-extract.cmd"
+# 2) 跑段 2 —— ⚠️ `sync-extract.cmd` 已于 2026-10-12 阶段 3 退役，此步不再可用；现由宿主内 pipeline 跑（见「一之七」）。
 
 # 3) 看结果
-Get-Content D:\dsh\dsh-kb-sync\data\import\sync\logs\ad-hoc.log
-Get-Content D:\dsh\dsh-kb-sync\data\import\sync\logs\extract-<今天>.md
+Get-Content D:\工作区\dsh-kb-sync\data\import\sync\logs\ad-hoc.log
+Get-Content D:\工作区\dsh-kb-sync\data\import\sync\logs\extract-<今天>.md
 ```
 
 **成本提示**：段 2 每次会调用模型（归类 + 可能的健康事实提取），消耗额度。段 1 不消耗。
@@ -487,18 +487,18 @@ Get-Content D:\dsh\dsh-kb-sync\data\import\sync\logs\extract-<今天>.md
 | `pwsh: cannot access the file ... being used by another process` | 同一份日志被重定向了两次。见第二节末尾的警告 |
 | 同步成功但没有新内容 | 正常。`没有需要更新的内容 ✔` 表示期间没聊新的 |
 | 知识库一直没长 | **先看计划任务还在不在**：2026-10-12 起 `DSH-KB-DailySync` 已被删除，**不会再自动跑** —— 手动双击 `trigger.cmd`，或按第三节重建任务。任务在、但还是没跑：电脑关机或未登录（登录后由 `StartWhenAvailable` 补跑）；宿主没起来则触发器轮询约 3 分钟后 `exit 3` |
-| 想确认最后一次结果 | `Get-Content D:\dsh\dsh-kb-sync\data\import\LAST-SYNC.txt` |
+| 想确认最后一次结果 | `Get-Content D:\工作区\dsh-kb-sync\data\import\LAST-SYNC.txt` |
 
 ## 七、日志在哪看
 
 ```powershell
 # 最近一次段 1 日志
-Get-ChildItem D:\dsh\dsh-kb-sync\data\import\sync\logs\sync-*.log | Sort-Object LastWriteTime | Select-Object -Last 1 | Get-Content
+Get-ChildItem D:\工作区\dsh-kb-sync\data\import\sync\logs\sync-*.log | Sort-Object LastWriteTime | Select-Object -Last 1 | Get-Content
 
 # 段 2 的摘要
-Get-ChildItem D:\dsh\dsh-kb-sync\data\import\sync\logs\extract-*.md | Sort-Object LastWriteTime | Select-Object -Last 1 | Get-Content
+Get-ChildItem D:\工作区\dsh-kb-sync\data\import\sync\logs\extract-*.md | Sort-Object LastWriteTime | Select-Object -Last 1 | Get-Content
 
 # 段 2 这一轮实际交给 headless 的输入，以及它产出的原始 JSON（可审计）
-Get-ChildItem D:\dsh\dsh-kb-sync\data\import\sync\inbox
-Get-ChildItem D:\dsh\dsh-kb-sync\data\import\sync\out
+Get-ChildItem D:\工作区\dsh-kb-sync\data\import\sync\inbox
+Get-ChildItem D:\工作区\dsh-kb-sync\data\import\sync\out
 ```
