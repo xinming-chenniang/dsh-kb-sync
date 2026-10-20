@@ -3,6 +3,25 @@
 > 每条描述**当时那个版本**的行为，不保证对当前版本全部成立；当前用法看 [`README.md`](README.md)（中文）与 [`README.en.md`](README.en.md)。
 > Entries describe behaviour **at that release**, not necessarily current behaviour — see the READMEs for current usage.
 
+## 未发布（2026-10-20）
+
+### 把个人语料派生的专题映射移出随包代码
+
+- `tools/pipeline/map-specialties.mjs` 里原有一张 **44 条**的基线映射（`const MAP = { 2454: '…', … }`），
+  是逐条人工判定、从个人语料派生出来的专题标签；而 `package.json` 的 `files` 把 `tools/pipeline`
+  整目录收进发布包 → **这 44 条会跟着包发给每个装它的人**。发布门禁只匹配 `files.path`（文件名），
+  抓不到正文里的表，所以它一直没被发现。实测：修复前 `npm pack` 出来的 tarball 里能 grep 到 22 行标签。
+- 现在代码里是**空表**，基线只存在于本地覆盖层 `data/import/specialties-map.json`
+  （`SPECIALTIES_MAP`；`data/` 不入库、不随包，缺文件即空表）。读取逻辑本来就有，未改。
+- 迁移：`node tools/migrate-baseline-map.mjs` —— 自动从历史里找到带 MAP 的提交，写出本地 JSON
+  （实测 44 条；重复跑新增 0 条，幂等）。**这台机器首次拉取这个提交后要跑一次**，否则下一次
+  增量整理不会自动并入那 44 条（已经并入成员库的不受影响）。
+- 防复发：`npm run preflight` 新增「随包内容扫描」—— 随包文本里出现 ≥10 行 `  idx: '…'` 即 FAIL
+  （反例实测：往 `lib/store.js` 塞 12 行假表 → `✗ 随包内容扫描 … lib/store.js（12 行）`；还原即绿）；
+  另支持 `data/import/publish-denylist.txt` 逐词扫描。
+- 历史里的 44 条**不重写**（不改写已推送历史）；本次解决的是"随包发给每个使用者"这条通路。
+- 版本号未动（0.2.0），是否发 0.2.1 由作者定。
+
 ## 0.2.0 — 2026-10-16
 
 > 两个主题：**控制页按任务重排**（去掉内部术语与重复入口），以及**面向公开发布的加固**

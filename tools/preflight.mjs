@@ -11,7 +11,7 @@
  * 子进程输出写进临时文件而不是管道：受限沙箱下 Node 的管道 stdio 会 EPERM，
  * 写文件这条路在两种环境下都能用。
  */
-import { mkdtempSync, openSync, closeSync, readFileSync, rmSync } from 'node:fs'
+import { existsSync, mkdtempSync, openSync, closeSync, readFileSync, rmSync } from 'node:fs'
 import { spawnSync } from 'node:child_process'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
@@ -127,6 +127,48 @@ function tail(text, lines = 12) {
       if (missing.length > 0) console.log(`    少了必需文件：${missing.join(', ')}`)
       if (unreadable.length > 0) console.log(`    这些文档里应有 "**N** 个文件" 的写法，没解析到：${unreadable.join('、')}`)
       if (drifted.length > 0) console.log(`    文档里的包体量与实际不符（实际 ${info.entryCount} 个）：${drifted.join('、')}`)
+
+      // ④c 随包**内容**扫描（2026-10-20 加）。
+      // 动机：这里原来只查**路径**，抓不到写在正文里的个人语料 ——
+      // 实测 `tools/pipeline/map-specialties.mjs` 的 44 条专题映射就这么随包发了出去，
+      // 而路径检查一直是绿的。两条规则：
+      //   ① 随包文本里出现 ≥10 行 `  1234: '…'` 形态 → 疑似内联数据表（个人语料别写进代码）；
+      //   ② 若存在 `data/import/publish-denylist.txt`（不入库、不随包），每行一个敏感词，逐行查。
+      {
+        const textual = /\.(mjs|js|json|md|yml|yaml|txt)$/
+        const readText = (p) => {
+          try {
+            return readFileSync(join(ROOT, p), 'utf8')
+          } catch {
+            return null
+          }
+        }
+        const tables = []
+        for (const p of paths) {
+          if (!textual.test(p)) continue
+          const text = readText(p)
+          if (text === null) continue
+          const rows = (text.match(/^\s*\d+:\s*'[^']{2,}'/gm) ?? []).length
+          if (rows >= 10) tables.push(`${p}（${rows} 行）`)
+        }
+        const denylistPath = join(ROOT, 'data', 'import', 'publish-denylist.txt')
+        const terms = existsSync(denylistPath)
+          ? readFileSync(denylistPath, 'utf8').split('\n').map((s) => s.trim()).filter((s) => s !== '' && !s.startsWith('#'))
+          : []
+        const hits = []
+        if (terms.length > 0) {
+          for (const p of paths) {
+            if (!textual.test(p)) continue
+            const text = readText(p)
+            if (text === null) continue
+            const n = terms.filter((t) => text.includes(t)).length
+            if (n > 0) hits.push(`${p}（${n} 个词）`)
+          }
+        }
+        record('随包内容扫描', tables.length === 0 && hits.length === 0, `内联表 ${tables.length} 处；denylist ${terms.length} 词`)
+        if (tables.length > 0) console.log(`    疑似内联数据表：${tables.join(', ')}`)
+        if (hits.length > 0) console.log(`    denylist 命中：${hits.join(', ')}`)
+      }
     }
   }
 }

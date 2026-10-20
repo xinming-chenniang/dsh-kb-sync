@@ -34,7 +34,12 @@
 `README.md`、`README.en.md`、`CONTRIBUTING.md`、`SECURITY.md`、`LICENSE`。2026-10-16 实测 **58** 个文件（约 480 KB）。
 
 注意 **`tools/pipeline/` 是"作者自己的参考流水线"**：里面是通用代码（拉取、重建、检索、体检），
-不含个人数据。别人的用法是把它换成自己的管线目录（`config.pipelineDir`）。
+**不含个人数据** —— 这句话是**要机械验证的，不是声明**。2026-10-20 实测反例：
+`map-specialties.mjs` 里内联着 44 条从个人语料派生的专题映射，它们**随包发了出去**，
+而当时的门禁只查**路径**（文件名），一直是绿的。
+现在这类数据表一律放 `data/import/`（不入库、不随包），并由 `npm run preflight` 扫**内容**：
+随包文本里出现 ≥10 行 `  1234: '…'` 形态即 FAIL（2026-10-20 加，反例见该文件 ④c）；
+另可放 `data/import/publish-denylist.txt`（每行一个敏感词）做逐词扫描。
 
 ## 三、发布前检查清单
 
@@ -56,6 +61,9 @@ $j = npm pack --dry-run --json | ConvertFrom-Json
 $bad = $j.files.path | Where-Object { $_ -match 'attic|health-selection|specialties-map|analysis-|probe-|conversations|\.token|pipeline\.json|trigger\.(log|json)|trigger-source|retired' }
 if ($bad) { "❌ 包内出现不该发布的东西：$($bad -join ', ')" } else { "✓ 干净（2026-10-16 实测 58 个文件）" }
 ```
+
+> **只查路径是不够的**（2026-10-20 实测）：路径干净、内容里仍可能有个人语料。
+> `npm run preflight` 的「随包内容扫描」查两类 —— 内联数据表、`data/import/publish-denylist.txt` 里的词。
 
 > 这条正则 2026-10-12 才补全：此前漏了 `pipeline.json` / `trigger.log` / `retired`，它们确实进过包
 > （`test/shipped.test.mjs` 现在会拦住回归）。
