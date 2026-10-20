@@ -13,6 +13,7 @@ body:
            `remove` → `add` → 重启，信任指纹变化后还需在 **设置 → 插件体检** 里重新确认。
 
         能跑 `npm test`（或 `npm run preflight`）的话请贴结论；报错**请贴原文**，不要转述。
+        如果你是从商店或 `github:` 装的，**拿不到** `test/` 与 `tools/preflight.mjs` —— 跳过这条即可，这不是你的问题。
 
   - type: input
     id: versions
@@ -20,6 +21,19 @@ body:
       label: 环境
       description: 插件版本 / DSH 版本 / Node 版本 / 操作系统
       placeholder: "dsh-kb-sync 0.2.0 · DSH 0.2.0-rc.2 · Node 24.19.0 · Windows 11"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install
+    attributes:
+      label: 你是怎么装的
+      description: 三种装法的数据落点、升级方式、能否跑测试都不一样（见 docs/USAGE.md）
+      options:
+        - 商店 / 插件市场
+        - github: 直装
+        - file: 源码目录
+        - 记不清
     validations:
       required: true
 

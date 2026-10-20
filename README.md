@@ -4,7 +4,7 @@
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![node](https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg)](package.json)
 
-**中文** ｜ [English](README.en.md) ｜ [使用说明](docs/USAGE.md) ｜ [更新日志](CHANGELOG.md)
+**中文** ｜ [English](README.en.md) ｜ [使用说明](docs/USAGE.md) ｜ [更新日志](CHANGELOG.md) ｜ [反馈](https://github.com/284022719/dsh-kb-sync/issues/new/choose)
 
 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 插件：把**你自己已有的同步流水线**搬到一个同源控制页——一键运行、看状态、看日志、跑完整性体检。
 

@@ -4,6 +4,8 @@
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![node](https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg)](package.json)
 
+[Feedback](https://github.com/284022719/dsh-kb-sync/issues/new/choose)
+
 A [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) plugin that brings **a conversation-sync pipeline you already own** onto one same-origin control page — run it, watch its state and logs, and check the knowledge base it produces.
 
 The typical pipeline is "DeepSeek web history → local knowledge base", but the plugin does not care what you sync.
