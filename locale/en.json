@@ -167,5 +167,21 @@
   "整理": "Organise",
   "正常": "All good",
   "否": "no",
-  "进度：": "Progress: "
+  "进度：": "Progress: ",
+  "反馈 / 报告问题": "Feedback / report a problem",
+  "复制诊断信息": "Copy diagnostics",
+  "复制失败：下面这段手动复制也一样": "Copy failed: copy the text below by hand instead",
+  "最后失败的哪一块：": "Last failed step: ",
+  "已复制到剪贴板": "Copied to clipboard",
+  "安装形态：": "Install form: ",
+  "没有失败的记录": "no failed run yet",
+  "诊断信息": "Diagnostics",
+  "Node 版本：": "Node version: ",
+  "DSH 版本：": "DSH version: ",
+  "最后一个 exitCode：": "Last exit code: ",
+  "复制中…": "copying…",
+  "平台：": "Platform: ",
+  "版本：": "Version: ",
+  "未知": "unknown",
+  "没有": "none"
 }

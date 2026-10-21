@@ -248,6 +248,25 @@ test('status reports paths, token age from mtime, last sync and newest log', asy
   assert.match(json.latestLog.tail, /line-3/)
 })
 
+/**
+ * `/status` 的 `env`：打 issue 时模板要的那五项（版本 / DSH / Node / 平台 / 安装形态）。
+ * 前两项与最后一项随机器而异，所以只钉"给了就是字符串、没查到就是 null"，
+ * 钉死值会让别的机器上红。
+ */
+test('status reports the environment facts a bug report needs', async () => {
+  const { root, kbDir } = makeRoot()
+  const host = boot({ root, kbDir })
+  const { status, json } = await request(host, { url: `${PREFIX}/status` })
+  assert.equal(status, 200)
+  const version = JSON.parse(readFileSync(join(PLUGIN_ROOT, 'package.json'), 'utf8')).version
+  assert.equal(json.env.version, version, '插件版本就是本包 package.json 的 version')
+  assert.equal(json.env.node, process.version)
+  assert.equal(json.env.platform, `${process.platform} ${process.arch}`)
+  // 宿主版本与安装形态：认出来就是字符串，认不出是 null（页面写「未知」），不能是空串。
+  assert.ok(json.env.dsh === null || (typeof json.env.dsh === 'string' && json.env.dsh.length > 0), `dsh=${json.env.dsh}`)
+  assert.ok(json.env.install === null || (typeof json.env.install === 'string' && json.env.install.length > 0), `install=${json.env.install}`)
+})
+
 test('an unconfigured root reports a message instead of failing', async () => {
   const host = boot({ config: { configFile: MISSING_CONFIG, localConfigFile: MISSING_CONFIG } })
   const { status, json } = await request(host, { url: `${PREFIX}/status` })

@@ -198,6 +198,25 @@ export interface ChainReport {
   notify?: { case?: string; title: string; body: string } | null
 }
 
+/**
+ * 打 issue 时要填的那几行环境事实（`/status` 的 `env`）。
+ *
+ * 全部从本机文件读出来，不含凭据；认不出来的项是 `null`，页面会把它写成「未知」——
+ * **不要**为了填满这一行去猜或去联网。
+ */
+export interface EnvFacts {
+  /** 插件自己的版本（本包 `package.json` 的 `version`）。 */
+  version: string | null
+  /** 宿主 `@deepseek-ai/dsh` 的版本；桌面版读 `app.asar`，CLI 读共用的 `node_modules`。 */
+  dsh: string | null
+  /** Node 运行时，如 `v24.19.0`。 */
+  node: string
+  /** `${process.platform} ${process.arch}`，如 `win32 x64`。 */
+  platform: string
+  /** profile 里声明的安装说明符（`github:` / `file:` / `link:` / 版本范围），认不出是 `null`。 */
+  install: string | null
+}
+
 /** 知识库规模。 */
 export interface KbStats {
   conversationsJsonl?: { bytes: number; mtime: number } | null
@@ -217,6 +236,8 @@ export interface StatusPayload {
   pullStartedAt?: number | null
   backfilling?: boolean
   configFile: { path: string; used: boolean; localPath: string; localUsed: boolean }
+  /** 打 issue 要的环境事实（版本 / DSH / Node / 平台 / 安装形态）。 */
+  env: EnvFacts
   paths: { root: string | null; syncScript: string | null; kbDir: string; outDir: string; logDir: string | null; pipelineDir: string }
   token?: TokenStatus
   lastResult?: LastResult | null
@@ -262,6 +283,9 @@ export function originAllowed(req: { headers?: Record<string, string | string[] 
 
 /** 组装 `/status` 的负载（同步函数，只读本机状态）。 */
 export function collectStatus(s: ResolvedSettings, state: Record<string, unknown>): StatusPayload
+
+/** 读本机的环境事实（`/status.env` 的那五项）；进程内缓存，只读文件、不出网。 */
+export function collectEnv(): EnvFacts
 
 /** 插件入口：注册同源路由并挂上控制页。 */
 export function apply(ctx: HostContext, config?: KbSyncConfig): void

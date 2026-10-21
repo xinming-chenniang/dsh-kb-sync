@@ -12,7 +12,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { SOURCE_LANG, SUPPORTED_LANGS, dictionary, normalizeLang, translator } from '../lib/locale.js'
-import { renderPage } from '../lib/page.js'
+import { buildDiagnostics, renderPage } from '../lib/page.js'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const EN = JSON.parse(readFileSync(join(HERE, '..', 'locale', 'en.json'), 'utf8'))
@@ -135,4 +135,70 @@ test('语言参数被转义进 href（不接受注入）', () => {
   const html = renderPage({ prefix: '/__dsh-kb-sync', lang: 'en"><script>x</script>', root: 'D:\\p' })
   assert.equal(html.includes('<script>x</script>'), false)
   assert.match(html, /<html lang="zh-CN">/, '不认识的语言回落源语言（zh-CN）')
+})
+
+/**
+ * 页脚是"从插件到 issue 页的路"的唯一入口：一句固定链接 + 一个把诊断信息塞进剪贴板的按钮。
+ * 链接写错就等于没有反馈通道，所以把它逐字钉住（中英各渲染一次）。
+ */
+test('页脚：反馈链接指向 issue 选择页，旁边是「复制诊断信息」，页面仍不加载外部资源', () => {
+  const zh = renderPage({ prefix: '/__dsh-kb-sync', lang: 'zh', root: 'D:\\p', configFile: 'C:\\c.json' })
+  assert.match(zh, /href="https:\/\/github\.com\/xinming-chenniang\/dsh-kb-sync\/issues\/new\/choose"/)
+  assert.match(zh, /rel="noopener noreferrer"/)
+  assert.match(zh, />反馈 \/ 报告问题</)
+  assert.match(zh, /id="copyDiag"/)
+  assert.match(zh, />复制诊断信息</)
+  // 站外地址只允许是"用户点了才跳转"的 <a>：页面自己不能去加载任何外部资源。
+  assert.equal(zh.includes('<script src='), false, '页面不该引入外部脚本')
+  assert.equal(/<link[^>]+href="https?:/.test(zh), false, '页面不该引入外部样式/字体')
+
+  const en = renderPage({ prefix: '/__dsh-kb-sync', lang: 'en', root: 'D:\\p', configFile: 'c.json' })
+  assert.match(en, />Feedback \/ report a problem</)
+  assert.match(en, />Copy diagnostics</)
+})
+
+/**
+ * 「复制诊断信息」拼出来的那段 Markdown：字段顺序、缺失时的说法、最后失败的哪一块。
+ * 这条是页脚按钮的实际产出（页面里内联的就是同一个函数），不是另一份复制品。
+ */
+test('buildDiagnostics()：环境五项 + 最后失败的哪一块 + 最后一个 exitCode', () => {
+  const status = {
+    env: { version: '0.2.0', dsh: '0.2.1-rc.2', node: 'v24.19.0', platform: 'win32 x64', install: 'link:D:/工作区/dsh-kb-sync' },
+    chain: {
+      running: false,
+      stages: [],
+      report: {
+        ok: false,
+        failedStage: 'process',
+        reason: 'process：退出码 1，且没有完成标记',
+        stages: [{ stage: 'token', ok: true, exitCode: 0, ms: 3 }, { stage: 'process', ok: false, exitCode: 1, ms: 900 }],
+      },
+    },
+    lastResult: { ok: true, exitCode: 0 },
+  }
+  const text = buildDiagnostics(status, translator('zh'), { process: '整理' })
+  const lines = text.split('\n')
+  assert.equal(lines[0], '### 诊断信息')
+  assert.deepEqual(lines.slice(2), [
+    '- 版本：dsh-kb-sync 0.2.0',
+    '- DSH 版本：0.2.1-rc.2',
+    '- Node 版本：v24.19.0',
+    '- 平台：win32 x64',
+    '- 安装形态：link:D:/工作区/dsh-kb-sync',
+    '- 最后失败的哪一块：更新知识库 → 整理（process：退出码 1，且没有完成标记）',
+    '- 最后一个 exitCode：1',
+  ])
+
+  // 英文页拿到的同一段：标签翻成英文，值原样。
+  const en = buildDiagnostics(status, translator('en'), { process: 'Organise' })
+  assert.match(en, /^### Diagnostics$/m)
+  assert.match(en, /^- Install form: link:D:\/工作区\/dsh-kb-sync$/m)
+  assert.match(en, /^- Last failed step: Update knowledge base → Organise/m)
+  assert.match(en, /^- Last exit code: 1$/m)
+  // 什么都没跑过 / 什么都没读到：如实说，不编一个不存在的失败与退出码。
+  const quiet = buildDiagnostics({}, translator('zh'), {})
+  assert.match(quiet, /^- 版本：未知$/m)
+  assert.match(quiet, /^- DSH 版本：未知$/m)
+  assert.match(quiet, /^- 最后失败的哪一块：没有失败的记录$/m)
+  assert.match(quiet, /^- 最后一个 exitCode：没有$/m)
 })

@@ -42,7 +42,7 @@ dsh-kb-sync/
 ├─ lib/                  插件代码：index（路由+整链编排）/ client（客户端半部：设置页分节）/ locale（多语言）/ deepseek（接口）/ export（回填）/ store（落盘）/ page（控制页：结论条 + 收新对话/找内容/整理/诊断）/ pipeline（分步判定）/ process（整理）
 ├─ locale/               控制页译文（`en.json` —— 中文是源语言，键就是中文原文）
 ├─ docs/                 能力披露与架构图
-├─ test/                 单测（node --test，91 例；文档一致性与随包卫生也在里面）
+├─ test/                 单测（node --test，94 例；文档一致性与随包卫生也在里面）
 ├─ tools/                发布脚本（publish.ps1 / publish.cmd）与发布前预检（preflight.mjs）
 ├─ config.example.json   配置样例 —— 复制成 config.json 就生效（配置跟着代码走）
 ├─ data/kb/              **知识库默认就落在这里**（不入库；可配 outDir 改到别处）
@@ -292,7 +292,7 @@ dsh-kb-sync 0.1.0 — red                    (退出码 2 = 有红线)
 ## 开发
 
 ```sh
-npm test           # node --test：全部 91 个用例
+npm test           # node --test：全部 94 个用例
                    #   插件路由/同源守卫/越界拒绝/argv 构造/凭据文件不读正文/时间口径/语言接线/整理（模型判断）路由端到端（30）
                    # + 客户端半部契约：加载 id、字典中英对齐、settings.section 注册、守卫头、与宿主装配规则逐条对齐（9）
                    # + 多语言：译文表完整、键对齐、占位符一致、英文页无未翻译中文、内联脚本可解析、界面无内部术语（9）

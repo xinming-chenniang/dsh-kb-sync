@@ -42,12 +42,12 @@ DSH 插件，**一个插件三块能力**：① 自己拉取（读凭据值 + �
 | [`lib/process.js`](lib/process.js) / [`lib/pipeline.js`](lib/pipeline.js) | 整理（模型判断）/ 阶段判成（`classifyStage`） | 判成**退出码优先**，不看措辞（§4.5） |
 | [`tools/pipeline/`](tools/pipeline/README.md) | **作者自己的参考流水线**（随包发布，通用代码、无个人数据） | 别人用法是换目录（`config.pipelineDir`） |
 | `data/kb/` · `data/import/` | 用户全部历史对话 + 管线运行时数据 | **不入库、不随包**（所以新克隆里没有它们 —— 文档里不要写成文件链接）；`data/import/health-facts` 是**独立 git 仓库** |
-| [`docs/`](docs/PIPELINE-CONTRACT.md) · [`test/`](test) | 契约文档 / 8 个测试文件（91 例） | 契约细节一律读 docs，不要从代码反推后再写进文档 |
+| [`docs/`](docs/PIPELINE-CONTRACT.md) · [`test/`](test) | 契约文档 / 8 个测试文件（94 例） | 契约细节一律读 docs，不要从代码反推后再写进文档 |
 
 ## 3. 命令
 
 ```sh
-npm test              # node --test，8 个文件 91 例（2026-10-16 实测 91 pass / 0 fail）
+npm test              # node --test，8 个文件 94 例（2026-10-21 本机 Windows 实测 94 pass / 0 fail）
 npm run check         # 逐文件语法检查 lib/*.js + 管线两个入口 + ESM import 冒烟
 npm run check:types   # tsc --noEmit（唯一 devDependency 是 typescript；未装会明确跳过）
 npm run pack:check    # npm pack --dry-run：看发布包内容
