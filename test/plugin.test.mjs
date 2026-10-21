@@ -7,7 +7,7 @@
 
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, utimesSync } from 'node:fs'
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync, utimesSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
@@ -19,11 +19,15 @@ const PREFIX = '/__dsh-kb-sync'
 /** A settings-file path that never exists, so tests never read the real ~/.dsh one. */
 const MISSING_CONFIG = join(tmpdir(), 'dsh-kb-sync-test-no-such-config.json')
 
+/** 本平台会选中的同步脚本名（与 lib/index.js 的 `discoverSyncScript` 平台优先级一致）。 */
+const SYNC_FILE = process.platform === 'win32' ? 'sync-daily.cmd' : 'sync-daily.sh'
+
 /** Build a fixture pipeline root: sync script, LAST-SYNC, one log, a token file. */
 function makeRoot({ tokenAgeDays = 3 } = {}) {
   const root = mkdtempSync(join(tmpdir(), 'kb-sync-'))
   mkdirSync(join(root, 'sync', 'logs'), { recursive: true })
   writeFileSync(join(root, 'sync', 'sync-daily.cmd'), '@echo off\r\necho hello\r\n')
+  writeFileSync(join(root, 'sync', 'sync-daily.sh'), '#!/bin/sh\necho hello\n')
   writeFileSync(join(root, 'sync', 'LAST-SYNC.txt'), '2026-10-09 21:00:06  sync-ok\n2026-10-10 21:00:07  sync-ok\n')
   writeFileSync(join(root, 'sync', 'logs', 'sync-20261010.log'), 'line-1\nline-2\nline-3\n')
   const token = join(root, '.token')
@@ -320,7 +324,7 @@ test('POST /run spawns the sync script with an explicit argv and no stdin', asyn
   assert.equal(sub.specs.length, 1)
   assert.equal(sub.specs[0].stdio.stdin, 'ignore')
   assert.equal(sub.specs[0].cwd, root)
-  assert.deepEqual(sub.specs[0].argv.slice(-1), [join(root, 'sync', 'sync-daily.cmd')])
+  assert.deepEqual(sub.specs[0].argv.slice(-1), [join(root, 'sync', SYNC_FILE)])
   assert.ok(sub.specs[0].argv[0].startsWith(process.platform === 'win32' ? 'cmd' : '/'))
 
   const running = await request(host, { url: `${PREFIX}/status` })
@@ -388,7 +392,7 @@ test('unknown sub-paths 404 and wrong methods 405', async () => {
 test('resolveSettings discovers the windows default script and honours overrides', () => {
   const { root } = makeRoot()
   const discovered = resolveSettings({ root, configFile: MISSING_CONFIG, localConfigFile: MISSING_CONFIG })
-  assert.equal(discovered.syncScript, join(root, 'sync', 'sync-daily.cmd'))
+  assert.equal(discovered.syncScript, join(root, 'sync', SYNC_FILE))
   // 知识库（以及默认的体检目录）都在插件自己的 data/kb 下，不再推导到 ../knowledge-base
   assert.equal(discovered.outDir, join(PLUGIN_ROOT, 'data', 'kb'))
   assert.equal(discovered.kbDir, join(PLUGIN_ROOT, 'data', 'kb'))
@@ -410,7 +414,7 @@ test('the settings file supplies values the loader config omits, and loader conf
   assert.equal(fromFile.root, root)
   assert.equal(fromFile.tokenOldDays, 5)
   assert.equal(fromFile.configFileUsed, true)
-  assert.equal(fromFile.syncScript, join(root, 'sync', 'sync-daily.cmd'))
+  assert.equal(fromFile.syncScript, join(root, 'sync', SYNC_FILE))
 
   const other = makeRoot()
   const overridden = resolveSettings({ configFile: file, root: other.root, tokenOldDays: 30, localConfigFile: MISSING_CONFIG })
@@ -690,9 +694,18 @@ test('GET /conversation returns one conversation as markdown', async () => {
 
 test('the knowledge base writer refuses to escape its directory', async () => {
   const { resolveInside } = await import('../lib/store.js')
-  assert.throws(() => resolveInside('D:\\kb', '..\\evil.md'), /路径越界/)
-  assert.throws(() => resolveInside('D:\\kb', 'C:\\Windows\\evil.md'), /路径越界/)
-  assert.ok(resolveInside('D:\\kb', 'conversations/ok.md').startsWith('D:\\kb'))
+  // 越界写法必须按平台取：POSIX 上反斜杠不是分隔符，`..\evil.md` 只会变成一个怪文件名，
+  // 原本那版测试写死了 Windows 语义，Linux 上「Missing expected exception」。
+  const kb = mkdtempSync(join(tmpdir(), 'kb-inside-'))
+  try {
+    const up = process.platform === 'win32' ? '..\\evil.md' : '../evil.md'
+    const absolute = process.platform === 'win32' ? 'C:\\Windows\\evil.md' : '/etc/evil.md'
+    assert.throws(() => resolveInside(kb, up), /路径越界/)
+    assert.throws(() => resolveInside(kb, absolute), /路径越界/)
+    assert.ok(resolveInside(kb, 'conversations/ok.md').startsWith(kb))
+  } finally {
+    rmSync(kb, { recursive: true, force: true })
+  }
 })
 
 // ---------------------------------------------------------------------------
