@@ -6,6 +6,8 @@
 > - **状态**：**活跃**，`main` 与 `origin/main` 同步（2026-10-20 推送 `3fbbf54`）。
 > - **处置**：**保留**（插件本体）。`data\`（知识库与管线运行时数据）**不入库、不发布**；`config.json` 是本机配置（`.gitignore:8`），不进包。
 > - **关联**：[`README.md`](README.md)（产品权威）· `tools\pipeline\README.md` · `控制台中心\hub\services.mjs`（`KB_ROOT`/`IMPORT`/`KB` 常量）· `dsh-worklog\AGENTS.md`（三端约定）。
+> - **2026-10-23 产品组合指针**：本仓库是 `D:\dsh\plugins` 产品组合的**私有域例外**，不参与 npm/市场发布；
+>   组合定位与发布规则见 `D:\dsh\plugins\PRODUCT-PLAN.md` / `RELEASING.md`（本仓库只做内部工具）。
 
 > 本文件 2026-10-16 新建（`/init`）。层级按 `~\.dsh\RULES-PLAN.md` §二：**L3 子项目约定**，
 > 只在 cwd 落在本目录内时注入；代理可自主增删。
