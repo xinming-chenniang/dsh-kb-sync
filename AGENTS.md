@@ -1,7 +1,7 @@
 # D:\工作区\dsh-kb-sync —— 插件的仓库约定（L3 子项目）
 
 > **本目录五行**（用户级目录判据；`README.md` 是对外发布物，不放本机处置信息，故记在这里）
-> - **出处**：2026-10-11 首个提交 `2589aa6`（"host-only orchestrator for a user-owned sync pipeline"）；2026-10-20「域迁移」从 `D:\dsh\dsh-kb-sync` 迁入数据域。
+> - **出处**：2026-10-11 首个提交 `2589aa6`（"host-only orchestrator for a user-owned sync pipeline"）；2026-10-20「域迁移」从 `D:\dsh\dsh-kb-sync` 迁入 `D:\工作区\`。
 > - **是什么**：DSH 插件（拉取 / 编排 / 整理三块能力）+ 作者自己的参考流水线（`tools\pipeline\`）；独立 git 仓库，远端 `xinming-chenniang/dsh-kb-sync`。
 > - **状态**：**活跃**，`main` 与 `origin/main` 同步（2026-10-20 推送 `3fbbf54`）。
 > - **处置**：**保留**（插件本体）。`data\`（知识库与管线运行时数据）**不入库、不发布**；`config.json` 是本机配置（`.gitignore:8`），不进包。
