@@ -61,7 +61,7 @@ Windows 任务计划程序  DSH-KB-DailySync  每天 21:00
 | 是否自动生效 | 是（随后重建档案） | **否——必须由你在财务看板确认后才入账** |
 
 > ⚠️ **财务为什么只写候选、不自动入账**：**台账的规矩只有一个家** ——
-> `D:\工作区\控制台中心\finance\README.md`「候选不会自动进台账」。让模型直接改 `profile.json` / `debts.json`
+> `D:\工作区\finance\README.md`「候选不会自动进台账」。让模型直接改 `profile.json` / `debts.json`
 > 会破坏那套规矩，而钱的数字一旦悄悄错掉很难发现。所以段 2 只把候选追加到 `candidates.jsonl`。
 >
 > 候选体积很小、只追加不覆盖；重复抽取会按 `dedupeKey`（topic+label+值+asOf+出处）自动跳过，反复运行不会堆积。
