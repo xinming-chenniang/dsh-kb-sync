@@ -7,13 +7,18 @@
 // 否则每轮都会把过去所有财务会话重摘一遍。
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { KNOWLEDGE, FINANCE_DIGEST, UPDATE_NEW_ITEMS, FIN_DIR } from './_paths.mjs';
+import { KNOWLEDGE, FINANCE_DIGEST, UPDATE_NEW_ITEMS, FIN_DIR, FINANCE_KEYWORDS } from './_paths.mjs';
+import { loadKeywordRe } from './_keywords.mjs';
 
 const recs = readFileSync(join(KNOWLEDGE, 'conversations.jsonl'), 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l));
 const catalog = JSON.parse(readFileSync(join(KNOWLEDGE, 'catalog.json'), 'utf8'));
 
 // 财务相关关键词。刻意保守：宁可漏，不要把随口提到"钱"的闲聊全捞进来。
-const FIN_RE = /工资|薪水|薪|收入|到手|绩效|年终|奖金|公积金|社保|支出|开销|花呗|借呗|微粒贷|分付|信用卡|网贷|贷款|还款|还债|还清|欠款|负债|债务|利息|年化|分期|手续费|罚息|逾期|存款|储蓄|理财|基金|股票|投资|预算|记账|现金流|房贷|房租|余额|资产|存款|攒钱|省钱|提前还/;
+// **具体词在本地覆盖层**（`data/import/finance-keywords.txt`，不入库、不随包）：那张表是从个人
+// 会话里长出来的（花呗 / 微粒贷 / 分付 …），随包发布就等于公布"作者在关心什么"。理由同
+// `map-specialties.mjs` 第 34 行那段；代码里只留不分人的兜底。
+const GENERIC_FIN_RE = /工资|收入|支出|开销|贷款|还款|负债|债务|储蓄|理财|投资|预算|记账|信用卡/;
+const FIN_RE = loadKeywordRe(FINANCE_KEYWORDS, GENERIC_FIN_RE);
 
 // ---- 只挑本轮变化的会话 ----
 const roundFile = UPDATE_NEW_ITEMS;

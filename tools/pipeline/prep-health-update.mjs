@@ -6,16 +6,22 @@
 // 之后交给提取 agent 产出 health-facts/digest-20.json，再由 build-health-profile 合并。
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { KB_DIR, KNOWLEDGE, HEALTH_DIGEST, UPDATE_NEW_ITEMS } from './_paths.mjs';
+import { KB_DIR, KNOWLEDGE, HEALTH_DIGEST, UPDATE_NEW_ITEMS, HEALTH_KEYWORDS, HEALTH_CONTINUED_TITLES } from './_paths.mjs';
+import { loadKeywordList, loadKeywordRe } from './_keywords.mjs';
 const KB = KB_DIR;
 const recs = readFileSync(join(KNOWLEDGE, 'conversations.jsonl'), 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l));
 const catalog = JSON.parse(readFileSync(join(KNOWLEDGE, 'catalog.json'), 'utf8'));
 
-// 被续聊、且属于健康核心来源的会话
-const CONTINUED_HEALTH = ['体检报告解读咨询'];
+// 被续聊、且属于健康核心来源的会话。
+// 具体标题在本地覆盖层 `data/import/health-continued-titles.txt`（不入库、不随包）：
+// 会话标题本身就是个人语料，写进随包脚本等于把"我聊过什么"发给每个装它的人。
+const CONTINUED_HEALTH = loadKeywordList(HEALTH_CONTINUED_TITLES);
 
-// 新增会话里与健康/饮食/心理/医疗相关的（按标题关键词）
-const HEALTHY_TITLE = /吃|喝|拉稀|腹泻|豆浆|牛奶|鼠|睡眠|瘫痪|嗓子|鼻血|着凉|打喷嚏|经期|性爱|性行为|阴道|生殖|胸|发育|体重|BMI|健康|医|病|症|药|检查|MBTI|人格|心理|情绪|ADHD|失眠|疲劳|头晕|胆|胃|肠|肝|肾|尿酸|疫苗|体检|医院|就诊|近视|眼|牙|听|血压|血糖|营养/;
+// 新增会话里与健康/饮食/心理/医疗相关的（按标题关键词）。
+// 同样：**具体词在覆盖层**（`data/import/health-keywords.txt`），代码里只留不分人的兜底。
+// 背景与代价见 `_keywords.mjs` 顶部与 `map-specialties.mjs` 第 34 行那段注释。
+const GENERIC_HEALTHY_TITLE = /健康|医疗|症状|体检|医院|就诊|医生|用药|心理|情绪|睡眠|饮食|体重/;
+const HEALTHY_TITLE = loadKeywordRe(HEALTH_KEYWORDS, GENERIC_HEALTHY_TITLE);
 
 // ---- 只挑「本轮」的会话 ----
 // 早先这里用的是 `c.idx >= 2446`（即"首轮导入之后新增的一切"），那是错的：

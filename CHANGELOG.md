@@ -22,6 +22,24 @@
 - 历史里的 44 条**不重写**（不改写已推送历史）；本次解决的是"随包发给每个使用者"这条通路。
 - 版本号未动（0.2.0），是否发 0.2.1 由作者定。
 
+### 把健康/财务关键词表也移出随包代码（2026-10-24）
+
+- 同一条毛病的余下几处：`prep-health-update.mjs` 的 `HEALTHY_TITLE`（53 词，含「拉稀/鼻血/经期/阴道/生殖」
+  这类）与 `CONTINUED_HEALTH`（1 条会话标题「体检报告解读咨询」）、`prep-finance-update.mjs` 的 `FIN_RE`
+  （48 词，含「花呗/借呗/微粒贷/分付」这类）—— 都在随包的 `tools/pipeline/` 里。泄的不是对话正文，
+  是**"作者在关心什么"**（健康 / 财务 / 生殖健康），对陌生人同样没用。
+- 现在代码里只剩**不分人的通用兜底**（`/健康|体检|医院/`、`/贷款|还款|预算/` 这种）；具体词在本地覆盖层
+  `data/import/{health,finance}-keywords.txt` 与 `health-continued-titles.txt`（`data/` 不入库、不随包）。
+  读取逻辑收在新的 `tools/pipeline/_keywords.mjs`（覆盖层缺文件 → 兜底，不报错）。
+- 迁移：`node tools/migrate-keyword-lists.mjs` —— 从迁移前的提交里把三张表抽成词表文件
+  （实测 53 词 + 1 条标题 + 48 词；重复跑「已存在，跳过」，幂等）。**首次拉取后要跑一次**，否则下一轮
+  增量整理只看通用兜底，会漏掉那些个人关键词命中。
+- 回归防线（3 例，全套 97 例）：`loadKeywordRe` 的覆盖层/兜底语义、`prep-health-update` 的
+  **反例驱动**验证（同一个会话，写词表前不选中、写完必须选中）、两个 prep 脚本的接线断言。
+- 仍未搬的一批（同类但更偏通用医学词汇，等作者定）：`prep-health-batches.mjs`（41 项）、
+  `prep-health-digest2.mjs`（24 项）、`build-health-profile.mjs`（23 项，含生殖健康词）、
+  `prep-health-digest.mjs`（21 项）、`prep-health-update.mjs` 的化验值正则（21 项）。
+
 ### 反馈入口补到用户看得到的地方（issue 模板 + README）
 
 - `bug_report.yml`：删掉那条**登记用户做不到**的要求（"跑 `npm test` 贴结论"——`github:`/商店装的用户拿不到

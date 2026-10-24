@@ -50,8 +50,8 @@ dsh-kb-sync/
 ├─ package.json / cordis.patch.yml / README.md / README.en.md / CHANGELOG.md / LICENSE
 ```
 
-> 上面是**源码仓库**的样子。安装包（`package.json` 的 `files` 白名单；2026-10-16 实测
-> `npm pack --dry-run` 共 **58** 个文件 / 约 480 KB）里有 `lib/`、`locale/`、`docs/`、`tools/pipeline/`、
+> 上面是**源码仓库**的样子。安装包（`package.json` 的 `files` 白名单；2026-10-24 实测
+> `npm pack --dry-run` 共 **59** 个文件 / 约 491 KB）里有 `lib/`、`locale/`、`docs/`、`tools/pipeline/`、
 > `assets/screenshots/`、`screenshots.json`、`cordis.patch.yml`、`config.example.json`、`CHANGELOG.md`、
 > `README.md`、`README.en.md`、`CONTRIBUTING.md`、`SECURITY.md`、`LICENSE`
 > —— **`test/`、`tools/publish.*`、`AGENTS.md`、`data/` 不在其中**（`config.example.json` 自 0.1.0 起随包发布；
@@ -292,7 +292,7 @@ dsh-kb-sync 0.1.0 — red                    (退出码 2 = 有红线)
 ## 开发
 
 ```sh
-npm test           # node --test：全部 94 个用例
+npm test           # node --test：全部 97 个用例
                    #   插件路由/同源守卫/越界拒绝/argv 构造/凭据文件不读正文/时间口径/语言接线/整理（模型判断）路由端到端（30）
                    # + 客户端半部契约：加载 id、字典中英对齐、settings.section 注册、守卫头、与宿主装配规则逐条对齐（9）
                    # + 多语言：译文表完整、键对齐、占位符一致、英文页无未翻译中文、内联脚本可解析、界面无内部术语（9）

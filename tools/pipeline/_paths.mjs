@@ -73,6 +73,12 @@ export const INBOX_DIR = join(IMPORT_DIR, 'sync', 'inbox');
 export const OUT_DIR = join(IMPORT_DIR, 'sync', 'out');
 export const TOPICS_DIR = join(IMPORT_DIR, 'topics');
 export const SPECIALTIES_MAP = join(IMPORT_DIR, 'specialties-map.json');
+// —— 本地覆盖层：个人语料派生的**关键词表** / 续聊标题（2026-10-24）——
+// 理由与 SPECIALTIES_MAP 相同：这些词来自个人会话主题，写进随包脚本就等于公布"作者在关心什么"。
+// 缺文件时调用方退回通用兜底（`_keywords.mjs`），不报错。迁移：`node tools/migrate-keyword-lists.mjs`。
+export const HEALTH_KEYWORDS = join(IMPORT_DIR, 'health-keywords.txt');
+export const FINANCE_KEYWORDS = join(IMPORT_DIR, 'finance-keywords.txt');
+export const HEALTH_CONTINUED_TITLES = join(IMPORT_DIR, 'health-continued-titles.txt');
 export const UPDATE_NEW_ITEMS = join(IMPORT_DIR, 'update-new-items.json');
 export const UPDATE_TOPICS = join(IMPORT_DIR, 'update-topics.json');
 export const LAST_SYNC = join(IMPORT_DIR, 'LAST-SYNC.txt');

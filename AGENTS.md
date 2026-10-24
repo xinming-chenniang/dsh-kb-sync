@@ -110,6 +110,10 @@ Node ≥ 20（本机实测 24.19.0）。CI 跑 `ubuntu + windows × Node 20/22/2
 - **知识库本体**（`data/kb/`）与**管线运行时数据**（`data/import/`：对话语料、健康事实、财务候选、日志、`.dsh-home` 里的凭据）；
 - `config.json` / `tools/pipeline/pipeline.json`（含本机绝对路径，**用户装上会静默读错数据目录**）；
 - `tools/pipeline/trigger.*`、`health-selection.json`、`specialties-map.json`、`pipeline-attic/`；
+- **从个人语料派生的词表**：`data/import/specialties-map.json`、`data/import/{health,finance}-keywords.txt`、
+  `data/import/health-continued-titles.txt`。**别把这类词写回 `tools/pipeline/*.mjs`** —— 那个目录整包发布
+  （2026-10-20 丢了 44 条专题映射、2026-10-24 丢掉 53+48 个健康/财务词，两次都是"门禁只查路径"放过的）；
+  代码里只留不分人的通用兜底，装载器见 `tools/pipeline/_keywords.mjs`。
 - `.token`／凭据（在 `~/.dsh/`，仓库外）。
 
 两条容易漏的：【硬经验】
