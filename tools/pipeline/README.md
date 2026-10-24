@@ -4,7 +4,7 @@
 > 运行时数据在 `D:\工作区\dsh-kb-sync\data\import\`，token 在仓库外。下面第一之三 / 一之四两节
 > 里仍留有 `D:\dsh\deepseek-import` 的**历史报错原文与生效日志**（它们记的是当时那一刻的事实，
 > 刻意不改）；凡是指路的命令与路径都已换成新地址。旧目录整体搬到了
-> `D:\dsh\_archive\deepseek-import-retired\`。
+> `D:\工作区\_archive\deepseek-import-retired\`。
 
 把你在外面（手机/公司电脑）用 chat.deepseek.com 产生的对话，**每天自动**吸收进本地知识库。
 
@@ -103,7 +103,7 @@ Error: SetNamedSecurityInfoW failed (Win32 5): grantWrite(D:\dsh\dsh-kb-sync\dat
 原因是 `D:\dsh\dsh-kb-sync\data\import` 缺少**有效 WRITE_OWNER 权限**，沙箱无法为工作区授予写权限。用 `diagnose-windows-sandbox-acl` 技能诊断并修复后（为该目录加上当前用户的完全控制项），`node` 恢复正常：`FIXED=0 GRANTED=1 REFUSED=0`，验证 `writeOwner: true, writeDac: true`。
 
 **备份与回滚**：改动前的原始权限备份、回滚脚本与诊断报告，2026-10-10 已统一收进
-`D:\dsh\_archive\acl-recovery\`（按操作分目录）：
+`D:\工作区\_archive\acl-recovery\`（按操作分目录）：
 `acl-backup-c384c61bd5b54f08b03b4133e8318148.json` + 同名 `.json.ps1`（回滚脚本，
 `-Restore` 指回该 json）与 `acl-report-e68f7c011cfa4f0d8a9d59a36b3cd321.jsonl`
 —— 就是本次为 `D:\dsh\dsh-kb-sync\data\import` 授权的那一次。同目录另存了当时那份
