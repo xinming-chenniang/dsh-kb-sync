@@ -79,6 +79,8 @@ export const SPECIALTIES_MAP = join(IMPORT_DIR, 'specialties-map.json');
 export const HEALTH_KEYWORDS = join(IMPORT_DIR, 'health-keywords.txt');
 export const FINANCE_KEYWORDS = join(IMPORT_DIR, 'finance-keywords.txt');
 export const HEALTH_CONTINUED_TITLES = join(IMPORT_DIR, 'health-continued-titles.txt');
+// 9 条「已人工确认属于他人」的**会话文件名**（真实对话标题）—— 比任何词表都具体，绝不许回代码。
+export const HEALTH_OTHER_CONVERSATIONS = join(IMPORT_DIR, 'health-other-conversations.json');
 export const UPDATE_NEW_ITEMS = join(IMPORT_DIR, 'update-new-items.json');
 export const UPDATE_TOPICS = join(IMPORT_DIR, 'update-topics.json');
 export const LAST_SYNC = join(IMPORT_DIR, 'LAST-SYNC.txt');

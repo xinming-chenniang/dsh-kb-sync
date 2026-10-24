@@ -7,7 +7,8 @@
 //         D:\dsh\health\facts.json
 import { readdirSync, readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { HEALTH_DIR, HEALTH_FACTS, KB_DIR } from './_paths.mjs';
+import { HEALTH_DIR, HEALTH_FACTS, KB_DIR, HEALTH_OTHER_CONVERSATIONS } from './_paths.mjs';
+import { loadStringSet } from './_keywords.mjs';
 
 const OUT = resolve(process.argv[2] ?? HEALTH_DIR);
 const SRC = HEALTH_FACTS;
@@ -115,18 +116,14 @@ if (archivedCount) console.log(`已折叠归档 ${archivedCount} 条（archived.
 // （经期、阴道、怀孕、罩杯），还有明确说「女朋友21岁」的。这些不能混进他的画像——
 // 否则助手会把「18岁，女」当成他的基本信息。
 const OTHER_RE = /月经|姨妈|经期|怀孕|妊娠|排卵|阴道|宫颈|子宫|罩杯|乳房|胸软|下垂|哺乳|白带|女朋友|女友|卵子|雌激素|女性|女孩|女生|21岁女|18岁女/;
-// 已人工确认属于他人的会话（文件名）
-const OTHER_CONVERSATIONS = new Set([
-  '20261001-经期大量饮酒致异常出血-84270dd3.md',
-  '20260929-阴道润滑液学名-91e7fc8c.md',
-  '20260929-高危性行为后检查建议-07e0378c.md',
-  '20260928-嗓子肿痛怕冷处理建议-79e36055.md',
-  '20260926-经期性爱注意事项-324d7b2f.md',
-  '20260914-月经周期粘人阶段-1663ed17.md',
-  '20261001-21岁E罩杯胸软下垂原因-4e198cc0.md',
-  '20261002-女孩发育到几岁-68465f17.md',
-  '20260923-18岁女孩儿,左上腹痛-f0366151.md',
-]);
+// 已人工确认属于他人的会话（文件名）。
+//
+// 2026-10-24：**这 9 条原来是写在这里的字面量**（`new Set(['20261001-经期大量饮酒致异常出血-…md', …])`）——
+// 它们不是关键词，是**真实对话标题**，比任何词表都具体，是 `tools/pipeline/` 里最该搬走的东西。
+// 现在只在本机覆盖层 `data/import/health-other-conversations.json`（`HEALTH_OTHER_CONVERSATIONS`；
+// `data/` 不入库、不随包，缺文件就是空集合）。迁移：`node tools/migrate-keyword-lists.mjs`。
+// 判据（写进 AGENTS.md §5）：**主题词可以留、会话标题/文件名必须搬**。
+const OTHER_CONVERSATIONS = loadStringSet(HEALTH_OTHER_CONVERSATIONS);
 let otherCount = 0;
 for (const f of ALL) {
   const blob = `${f.label ?? ''} ${f.value ?? ''} ${f.evidence ?? ''}`;

@@ -13,7 +13,7 @@ import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { MARKERS, chainVerdict, classifyStage, completedMarker } from '../lib/pipeline.js'
-import { loadKeywordList, loadKeywordRe } from '../tools/pipeline/_keywords.mjs'
+import { loadKeywordList, loadKeywordRe, loadStringSet } from '../tools/pipeline/_keywords.mjs'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 
@@ -142,5 +142,25 @@ test('两个 prep 脚本的关键词表都接线到覆盖层（不接线就会�
   assert.match(health, /loadKeywordList\(HEALTH_CONTINUED_TITLES\)/, '健康核心会话标题应来自覆盖层')
   assert.match(health, /loadKeywordRe\(HEALTH_KEYWORDS/, '健康关键词应来自覆盖层')
   assert.match(finance, /loadKeywordRe\(FINANCE_KEYWORDS/, '财务关键词应来自覆盖层')
+})
+
+test('loadStringSet：读 JSON 覆盖层；缺文件/坏文件 → 空集合（不炸）', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'kb-strset-'))
+  const file = join(dir, 'other.json')
+
+  // ① 缺文件：空集合（调用方只靠正则那条路判断归属）
+  assert.deepEqual([...loadStringSet(file)], [])
+
+  // ② 正常：认识 `{ conversations: [...] }` 与裸数组两种形态，去空白、丢空串
+  writeFileSync(file, JSON.stringify({ conversations: [' a.md ', '', 'b.md'] }), 'utf8')
+  assert.deepEqual([...loadStringSet(file)], ['a.md', 'b.md'])
+  writeFileSync(file, JSON.stringify(['c.md']), 'utf8')
+  assert.deepEqual([...loadStringSet(file)], ['c.md'])
+
+  // ③ 坏 JSON：空集合 + 一行提示（不让整轮同步失败）
+  writeFileSync(file, '{ not json', 'utf8')
+  assert.deepEqual([...loadStringSet(file)], [])
+
+  rmSync(dir, { recursive: true, force: true })
 })
 

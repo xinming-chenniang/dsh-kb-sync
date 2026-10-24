@@ -111,9 +111,16 @@ Node ≥ 20（本机实测 24.19.0）。CI 跑 `ubuntu + windows × Node 20/22/2
 - `config.json` / `tools/pipeline/pipeline.json`（含本机绝对路径，**用户装上会静默读错数据目录**）；
 - `tools/pipeline/trigger.*`、`health-selection.json`、`specialties-map.json`、`pipeline-attic/`；
 - **从个人语料派生的词表**：`data/import/specialties-map.json`、`data/import/{health,finance}-keywords.txt`、
-  `data/import/health-continued-titles.txt`。**别把这类词写回 `tools/pipeline/*.mjs`** —— 那个目录整包发布
-  （2026-10-20 丢了 44 条专题映射、2026-10-24 丢掉 53+48 个健康/财务词，两次都是"门禁只查路径"放过的）；
-  代码里只留不分人的通用兜底，装载器见 `tools/pipeline/_keywords.mjs`。
+  `data/import/health-continued-titles.txt`、`data/import/health-other-conversations.json`。**别把这类东西写回
+  `tools/pipeline/*.mjs`** —— 那个目录整包发布（2026-10-20 丢了 44 条专题映射、2026-10-24 丢掉 53+48 个健康/财务词
+  **和 9 条真实会话标题**，三次都是"门禁只查路径"放过的）；代码里只留不分人的通用兜底，装载器见 `tools/pipeline/_keywords.mjs`。
+- **判据（2026-10-24 定，用户拍板「都做」）**：
+  1. **会话标题 / 文件名 → 必须搬**（`build-health-profile.mjs` 那 9 条就是；它比任何词表都具体，`test/shipped.test.mjs`
+     有一条机械检查专门拦"写死的 `20xxxxxx-….md` 字面量"）；
+  2. **通用领域词 → 可留**（`CLIN` 的体检/化验/参考范围、`FIN_WORD` 的年化/月供/罚息、`LABELS` 的医嘱/病历…）——
+     这个插件的领域在 README 里已经公开写了（"健康事实 / 财务候选"），藏词没有意义；
+  3. **混合词表（主题指向某个人）→ 搬或拆**：`OTHER_RE`（生殖健康 23 词）与 `KEY`（身材/体重过轻）属这档，
+     暂留代码并在此登记，真要发布前再按这条判据拆。
 - `.token`／凭据（在 `~/.dsh/`，仓库外）。
 
 两条容易漏的：【硬经验】

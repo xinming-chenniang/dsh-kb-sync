@@ -78,6 +78,13 @@ const TABLES = [
     file: 'finance-keywords.txt',
     title: '财务相关会话的标题关键词（本机覆盖层；不入库、不随包）',
   },
+  {
+    script: 'tools/pipeline/build-health-profile.mjs',
+    variable: 'OTHER_CONVERSATIONS',
+    kind: 'set',
+    file: 'health-other-conversations.json',
+    title: '已人工确认属于他人的会话文件名（本机覆盖层；不入库、不随包）',
+  },
 ]
 
 /** 读某个提交里的脚本；读不到（比如还没提交过）返回 null。 */
@@ -104,24 +111,39 @@ function arraySource(text, variable) {
   return [...m[1].matchAll(/'([^']*)'/g)].map((x) => x[1]).filter((s) => s !== '')
 }
 
+/**
+ * 抽出 `const <VAR> = new Set(['…', '…']);` 里的字符串数组。
+ *
+ * 为什么单独认这种形态：这 9 条是**会话文件名**（真实对话标题），不是关键词 ——
+ * 它是 `tools/pipeline` 里最该搬走的东西（比任何词表都具体）。上一轮的扫描只匹配正则，漏了它。
+ */
+function setSource(text, variable) {
+  if (text === null) return null
+  const m = text.match(new RegExp(`const\\s+${variable}\\s*=\\s*new\\s+Set\\(\\[([\\s\\S]*?)\\]\\)\\s*;`))
+  if (m === null) return null
+  return [...m[1].matchAll(/'([^']*)'/g)].map((x) => x[1]).filter((s) => s !== '')
+}
+
 const ref = explicitRef ?? 'HEAD'
 let wrote = 0
 
 for (const t of TABLES) {
   const text = readAt(ref, t.script)
-  const words = t.kind === 'array' ? arraySource(text, t.variable) : null
-  const source = t.kind === 'array' ? null : regexSource(text, t.variable)
+  const words = t.kind === 'regex' ? null : t.kind === 'set' ? setSource(text, t.variable) : arraySource(text, t.variable)
+  const source = t.kind === 'regex' ? regexSource(text, t.variable) : null
   if (words === null && source === null) {
-    console.error(`${t.script} 在 ${ref} 里没有 \`const ${t.variable} = …;\` —— 可能已经迁移过了（代码里只剩兜底）。`)
-    console.error('  已迁移过就什么都不用做；要重抽旧词表，用 --ref 指定迁移前的提交。')
-    process.exit(1)
+    // 已经搬过的表在 HEAD 里就是"不存在"（代码里只剩兜底）：跳过，不算错。
+    console.log(`${t.variable}：${ref.slice(0, 9)} 里没有 \`const ${t.variable} = …;\` —— 已搬过，跳过`)
+    continue
   }
   const list = words ?? source.split('|').map((s) => s.trim()).filter((s) => s !== '')
-  // 词里出现正则元字符会让「一行一词」的读法失真：先在这一步拦住，别等运行期才发现。
-  const meta = list.filter((w) => /[\\^$.*+?()[\]{}|]/.test(w))
-  if (meta.length > 0) {
-    console.error(`${t.variable} 里有正则元字符，不能按「一行一词」搬：${meta.join('、')}`)
-    process.exit(1)
+  // 词里出现正则元字符会让「一行一词」的读法失真：先在这一步拦住，别等运行期才发现（只对词表适用，会话名不查）。
+  if (t.kind !== 'set') {
+    const meta = list.filter((w) => /[\\^$.*+?()[\]{}|]/.test(w))
+    if (meta.length > 0) {
+      console.error(`${t.variable} 里有正则元字符，不能按「一行一词」搬：${meta.join('、')}`)
+      process.exit(1)
+    }
   }
   // 语义不变的自检：正则拆开再拼回去必须逐字等于原正则。
   if (t.kind === 'regex' && list.join('|') !== source) {
@@ -134,14 +156,16 @@ for (const t of TABLES) {
   }
 
   const target = join(IMPORT, t.file)
-  const unit = t.kind === 'array' ? '条标题' : '词'
-  const payload = [
-    `# ${t.title}`,
-    `# 一行一个${unit === '条标题' ? '会话标题' : '关键词'}；以 # 开头的行与空行忽略。由 tools/migrate-keyword-lists.mjs 从 ${ref.slice(0, 9)} 抽出。`,
-    `# 缺这个文件时脚本用通用兜底（只含"健康/体检/贷款"这类不分人的词），不会报错。`,
-    ...list,
-    '',
-  ].join('\n')
+  const unit = t.kind === 'set' ? '条会话' : t.kind === 'array' ? '条标题' : '词'
+  const payload = t.kind === 'set'
+    ? `${JSON.stringify({ _note: `${t.title}；由 tools/migrate-keyword-lists.mjs 从 ${ref.slice(0, 9)} 抽出`, conversations: list }, null, 2)}\n`
+    : [
+        `# ${t.title}`,
+        `# 一行一个${unit === '条标题' ? '会话标题' : '关键词'}；以 # 开头的行与空行忽略。由 tools/migrate-keyword-lists.mjs 从 ${ref.slice(0, 9)} 抽出。`,
+        `# 缺这个文件时脚本用通用兜底（只含"健康/体检/贷款"这类不分人的词），不会报错。`,
+        ...list,
+        '',
+      ].join('\n')
 
   if (existsSync(target) && !force) {
     console.log(`${t.file} 已存在，跳过（要覆盖加 --force）：${target}`)

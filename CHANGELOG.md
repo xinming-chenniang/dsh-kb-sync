@@ -40,6 +40,23 @@
   `prep-health-digest2.mjs`（24 项）、`build-health-profile.mjs`（23 项，含生殖健康词）、
   `prep-health-digest.mjs`（21 项）、`prep-health-update.mjs` 的化验值正则（21 项）。
 
+### 9 条「属于他人」的会话文件名搬出代码（2026-10-24）
+
+- `build-health-profile.mjs` 的归属分离（把「不是本人」的健康事实挑出来，免得助手把「18岁，女」写进用户画像）
+  里有一个 `new Set([…])`，装着 **9 条真实会话文件名**（`20261001-经期大量饮酒致异常出血-…md`、
+  `20260929-阴道润滑液学名-…md`、`20261001-21岁E罩杯胸软下垂原因-…md` …）。它既不是正则表、也不是 `idx: '…'`
+  形态，所以发布门禁的两条规则（≥10 行内联表 / denylist）与「随包卫生」测试都看不见它 —— **比任何关键词表都具体**。
+- 现在只在本机覆盖层 `data/import/health-other-conversations.json`（`HEALTH_OTHER_CONVERSATIONS`），
+  `loadStringSet()` 读取；缺文件 = 空集合，归属分离退化为「只靠 `subject` 字段与 `femaleSelf` 正则」。
+  迁移：`node tools/migrate-keyword-lists.mjs`（幂等；已搬过的表会自动跳过）。
+- **实测（本机，`build-health-profile.mjs` 输出到临时目录）**：覆盖层在 → 「本人 871 条，他人/待确认 31 条」；
+  把覆盖层挪走再跑 → 「本人 879 条，他人/待确认 23 条」。差的 8 条正是这批名单负责的部分，证明读取链路真的生效。
+- 新增两条回归：`loadStringSet` 的缺文件/裸数组/坏 JSON；`test/shipped.test.mjs` 拦「随包文本里写死的 `20xxxxxx-….md` 字面量」。
+- **判定口径写进 `AGENTS.md` §5**（用户 2026-10-24 拍板「都做」）：**会话标题/文件名必须搬；通用领域词可留；
+  指向某个人的混合词表（`OTHER_RE` 生殖健康 23 词、`KEY` 的"身材/体重过轻"）暂留并登记，发布前再拆。**
+- ⚠️ **前提提醒**：本仓目前**私有**且**未发 npm**（2026-10-24 实测 `registry.npmjs.org/dsh-kb-sync` → 404、
+  未认证访问 GitHub → 404），所以这不是「正在泄漏」，是**发布前卫生**。别当事故讲。
+
 ### 反馈入口补到用户看得到的地方（issue 模板 + README）
 
 - `bug_report.yml`：删掉那条**登记用户做不到**的要求（"跑 `npm test` 贴结论"——`github:`/商店装的用户拿不到

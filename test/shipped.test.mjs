@@ -106,6 +106,25 @@ test('随包目录里没有漏进来的备份/临时文件', () => {
 })
 
 /**
+ * 随包文本里**不许出现写死的会话文件名**（`20261001-经期大量饮酒致异常出血-84270dd3.md` 这种）。
+ *
+ * 动机（2026-10-24）：`build-health-profile.mjs` 里曾有一个 `new Set([…9 条…])`，那是「已人工确认属于
+ * 他人的会话」，写的是**真实对话标题** —— 比任何关键词表都具体，但它既不是正则表、也不是 `idx: '…'`
+ * 形态，所以 `preflight` 的随包内容扫描与「随包卫生」两套检查都看不见它。
+ * 现在这类名单只在本机覆盖层（`data/import/health-other-conversations.json`）。
+ * 判据：**主题词可以留、会话标题/文件名必须搬**。
+ */
+test('随包文本里没有写死的会话文件名（真实对话标题绝不许回代码）', () => {
+  const pattern = /['"](20\d{6}-[^'"]{2,80}\.md)['"]/g
+  const bad = []
+  for (const rel of files.filter((f) => /\.(js|mjs|json|md|txt)$/.test(f))) {
+    const text = readFileSync(join(ROOT, rel), 'utf8')
+    for (const m of text.matchAll(pattern)) bad.push(`${rel} → ${m[1]}`)
+  }
+  assert.deepEqual(bad, [], `这些随包文件里写死了会话文件名（应放进 data/import 覆盖层）：\n  ${bad.join('\n  ')}`)
+})
+
+/**
  * 脚本里写死的**同目录引用**必须真实存在。
  *
  * 动机（2026-10-12 实测）：把 `tools/pipeline/attic/` 搬去 `data/import/pipeline-attic/` 时，

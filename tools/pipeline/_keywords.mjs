@@ -40,3 +40,24 @@ export function loadKeywordList(file) {
     return [];
   }
 }
+
+/**
+ * 读覆盖层里的**字符串集合**（JSON：`{ conversations: [...] }`，也收裸数组）；缺失/读坏 → 空 Set。
+ *
+ * 用途：`build-health-profile.mjs` 那 9 条「已人工确认属于他人」的会话文件名。
+ * 它们不是关键词而是**真实对话标题**，所以哪怕仓是私有的也不许写回代码（2026-10-24 判据）。
+ * @param {string} file - 覆盖层路径（`_paths.mjs` 的 `HEALTH_OTHER_CONVERSATIONS`）。
+ * @param {string} [key] - JSON 里的数组字段名。
+ * @returns {Set<string>} 集合（空 = 只用正则那条路判断归属）。
+ */
+export function loadStringSet(file, key = 'conversations') {
+  if (!existsSync(file)) return new Set();
+  try {
+    const data = JSON.parse(readFileSync(file, 'utf8'));
+    const list = Array.isArray(data) ? data : Array.isArray(data?.[key]) ? data[key] : [];
+    return new Set(list.map((s) => String(s).trim()).filter((s) => s !== ''));
+  } catch (err) {
+    console.log(`⚠️ ${file} 读取失败，按空集合处理：${String(err.message).slice(0, 80)}`);
+    return new Set();
+  }
+}
