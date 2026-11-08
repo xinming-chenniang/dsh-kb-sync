@@ -2,7 +2,7 @@
 //
 //   node sync-knowledge.mjs
 //
-// 1) knowledge.json  -> D:\工作区\health\KNOWLEDGE.md   （行动结论，助手每次回答前读它）
+// 1) knowledge.json  -> D:\个人应用\health\KNOWLEDGE.md   （行动结论，助手每次回答前读它）
 // 2) corrections.json 覆盖层 -> 临时给 facts.json 打补丁 -> 重跑档案生成 -> 还原 facts.json
 //    （保证原始提取永不被破坏，同时让修正体现在 PROFILE/METRICS/SYMPTOMS 等文件里）
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
